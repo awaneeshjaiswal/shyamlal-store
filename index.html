@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shyamlal General Store</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Hind:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+/* Layout: painted shop-signboard header, then a shelf of product "packets"; cart opens as a side drawer (bottom sheet on phones). */
+:root {
+  --bg: #F4F7F2;
+  --surface: #FFFFFF;
+  --surface-2: #EAF0E8;
+  --ink: #1C2920;
+  --muted: #5A6B5F;
+  --line: #D6E0D4;
+  --board: #1F5135;
+  --board-ink: #FBEFC8;
+  --turmeric: #E5A013;
+  --turmeric-ink: #2A1E00;
+  --chili: #B8392A;
+  --ok: #2F7D4A;
+  --shadow: 0 10px 30px rgba(20, 40, 28, .14);
+  --c-staples: #B5772B; --c-oil: #C99A12; --c-masala: #B8392A; --c-dairy: #3E7CB1;
+  --c-snacks: #D0632B; --c-drinks: #6B4E9B; --c-care: #2A8C7E; --c-home: #4F6D3A;
+  --f-display: "Rozha One", Georgia, "Times New Roman", serif;
+  --f-body: "Hind", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101713; --surface: #18221C; --surface-2: #1F2B23; --ink: #E7EEE8; --muted: #9DB0A3;
+    --line: #2C3A31; --board: #163D27; --board-ink: #F6E3A6; --turmeric: #F0B232; --turmeric-ink: #231800;
+    --chili: #E26A57; --ok: #5DBB7E; --shadow: 0 10px 30px rgba(0, 0, 0, .45); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101713; --surface: #18221C; --surface-2: #1F2B23; --ink: #E7EEE8; --muted: #9DB0A3;
+  --line: #2C3A31; --board: #163D27; --board-ink: #F6E3A6; --turmeric: #F0B232; --turmeric-ink: #231800;
+  --chili: #E26A57; --ok: #5DBB7E; --shadow: 0 10px 30px rgba(0, 0, 0, .45); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--board); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--turmeric); outline-offset: 2px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* Top bar */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--board); color: var(--board-ink); border-bottom: 3px solid var(--turmeric); }
+.topbar .wrap { display: flex; align-items: center; gap: 12px; padding-block: 10px; }
+.brand { font-family: var(--f-display); font-size: 1.35rem; line-height: 1; letter-spacing: .3px; }
+.status { font-size: .78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,.12); white-space: nowrap; }
+.status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: #7BD88F; }
+.status.closed .dot { background: #F08A7A; }
+.spacer { flex: 1; }
+.cart-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--turmeric); color: var(--turmeric-ink); border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 700; }
+.cart-btn .count { background: var(--turmeric-ink); color: var(--turmeric); border-radius: 999px; min-width: 22px; padding: 0 6px; text-align: center; font-size: .82rem; font-variant-numeric: tabular-nums; }
+
+/* Signboard hero */
+.board { background: var(--board); color: var(--board-ink); }
+.board .wrap { padding-block: 28px 34px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: end; }
+.board h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1; margin: 0 0 6px; text-wrap: balance; }
+.board .hi { font-family: var(--f-display); font-size: clamp(1.2rem, 3vw, 1.7rem); color: var(--turmeric); margin: 0 0 14px; }
+.board p { margin: 0; max-width: 52ch; opacity: .92; }
+.facts { display: grid; gap: 8px; }
+.fact { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed rgba(251,239,200,.3); padding-bottom: 6px; font-size: .95rem; }
+.fact b { color: var(--turmeric); font-weight: 600; text-align: right; }
+
+/* Offer strip */
+.offers { background: var(--turmeric); color: var(--turmeric-ink); font-weight: 600; font-size: .92rem; }
+.offers .wrap { display: flex; flex-wrap: wrap; gap: 6px 26px; padding-block: 9px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; padding-block: 22px 8px; }
+.search-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.search { flex: 1 1 260px; min-width: 0; position: relative; }
+.search input { width: 100%; padding: 12px 14px 12px 40px; border: 1.5px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--muted); fill: none; }
+select { padding: 12px; border: 1.5px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.chip { flex: none; border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-weight: 500; font-size: .92rem; }
+.chip[aria-pressed="true"] { background: var(--board); border-color: var(--board); color: var(--board-ink); }
+.chip small { opacity: .7; margin-left: 4px; }
+.result-note { color: var(--muted); font-size: .9rem; margin: 0; }
+
+/* Product grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 14px; padding-block: 8px 40px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pack { position: relative; aspect-ratio: 4 / 3; max-width: 100%; border-radius: 7px; background: var(--pc); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; text-align: center; padding: 8px; }
+.pack::before { content: ""; position: absolute; inset: 0 0 auto; height: 12px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.25) 0 6px, transparent 6px 12px); }
+.pack .pk-name { font-family: var(--f-display); font-size: 1.25rem; line-height: 1.05; text-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.pack .pk-unit { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; background: rgba(0,0,0,.18); padding: 1px 8px; border-radius: 999px; }
+.off { position: absolute; top: 18px; right: 8px; background: var(--surface); color: var(--chili); font-size: .72rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+.loose { position: absolute; top: 18px; left: 8px; background: rgba(0,0,0,.28); font-size: .7rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+.card h3 { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.25; }
+.card .hn { color: var(--muted); font-size: .88rem; line-height: 1.2; }
+.price-row { display: flex; align-items: baseline; gap: 8px; margin-top: auto; font-variant-numeric: tabular-nums; }
+.price { font-weight: 700; font-size: 1.1rem; }
+.mrp { color: var(--muted); font-size: .85rem; text-decoration: line-through; }
+.add { border: 1.5px solid var(--board); background: transparent; color: var(--board); border-radius: 8px; padding: 7px; font-weight: 700; width: 100%; }
+:root[data-theme="dark"] .add { color: var(--board-ink); border-color: var(--turmeric); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .add { color: var(--board-ink); border-color: var(--turmeric); } }
+.add:hover { background: var(--surface-2); }
+.stepper { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; background: var(--board); color: var(--board-ink); border-radius: 8px; overflow: hidden; }
+.stepper button { border: 0; background: transparent; color: inherit; font-size: 1.2rem; font-weight: 700; padding: 5px 0; }
+.stepper button:hover { background: rgba(255,255,255,.12); }
+.stepper span { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.empty { grid-column: 1 / -1; text-align: center; padding: 50px 10px; color: var(--muted); }
+
+/* Store info */
+.info { border-top: 1px solid var(--line); padding-block: 30px 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.info h2 { font-family: var(--f-display); font-weight: 400; font-size: 1.5rem; margin: 0 0 8px; }
+.info p { margin: 0 0 6px; color: var(--muted); }
+.copy-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.copy-line code { font-family: inherit; font-weight: 700; color: var(--ink); user-select: all; font-variant-numeric: tabular-nums; }
+.ghost { border: 1.5px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 12px; font-size: .88rem; font-weight: 600; }
+.hours { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.hours td { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.hours td:last-child { text-align: right; }
+.hours tr.today td { font-weight: 700; color: var(--ink); }
+
+/* Drawer */
+.scrim { position: fixed; inset: 0; background: rgba(8, 16, 10, .5); z-index: 40; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(430px, 100%); z-index: 50; background: var(--bg); box-shadow: var(--shadow); display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.dr-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--board); color: var(--board-ink); }
+.dr-head h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 1.4rem; }
+.x { border: 0; background: transparent; color: inherit; font-size: 1.6rem; line-height: 1; padding: 2px 8px; }
+.dr-body { flex: 1; overflow-y: auto; padding: 16px 18px; display: grid; gap: 16px; align-content: start; }
+.line { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.line .nm { font-weight: 600; min-width: 0; }
+.line .nm small { display: block; color: var(--muted); font-weight: 400; }
+.line .amt { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.line .stepper { width: 120px; }
+.line .rm { border: 0; background: none; color: var(--chili); font-size: .85rem; text-align: right; padding: 0; }
+.totals { display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+.totals div { display: flex; justify-content: space-between; }
+.totals .save { color: var(--ok); }
+.totals .grand { font-size: 1.15rem; font-weight: 700; border-top: 2px solid var(--ink); padding-top: 6px; margin-top: 4px; }
+.hint { background: var(--surface-2); border-radius: 8px; padding: 8px 12px; font-size: .9rem; }
+.hint b { color: var(--ok); }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+legend { font-weight: 700; margin-bottom: 6px; padding: 0; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg label { border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 10px; background: var(--surface); display: flex; gap: 8px; align-items: center; font-weight: 500; cursor: pointer; }
+.seg label:has(input:checked) { border-color: var(--board); background: var(--surface-2); }
+.field { display: grid; gap: 4px; }
+.field label { font-size: .9rem; font-weight: 600; }
+.field input, .field textarea { padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); width: 100%; }
+.field textarea { resize: vertical; min-height: 70px; }
+.field .err { color: var(--chili); font-size: .84rem; }
+.field.bad input, .field.bad textarea { border-color: var(--chili); }
+.dr-foot { padding: 14px 18px; border-top: 1px solid var(--line); background: var(--surface); }
+.primary { width: 100%; border: 0; background: var(--board); color: var(--board-ink); padding: 13px; border-radius: 10px; font-weight: 700; font-size: 1.05rem; }
+.primary:disabled { opacity: .5; cursor: not-allowed; }
+.done-badge { font-family: var(--f-display); font-size: 1.6rem; color: var(--ok); margin: 0; }
+.slip { background: var(--surface); border: 1px dashed var(--muted); border-radius: 8px; padding: 14px; white-space: pre-wrap; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .84rem; overflow-x: auto; margin: 0; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-row > * { flex: 1 1 140px; text-align: center; }
+.wa { display: inline-block; background: #1F8F4E; color: #fff; text-decoration: none; padding: 10px; border-radius: 10px; font-weight: 700; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 18px; border-radius: 999px; font-weight: 600; z-index: 60; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+
+@media (max-width: 720px) {
+  .board .wrap { grid-template-columns: 1fr; gap: 18px; padding-block: 22px 26px; }
+  .status { display: none; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .pack .pk-name { font-size: 1.05rem; }
+  .drawer { top: auto; height: 92%; width: 100%; border-radius: 16px 16px 0 0; overflow: hidden; padding-left: env(safe-area-inset-left, 0px); }
+  .brand { font-size: 1.15rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .drawer { animation: slide .22s ease-out; }
+  @keyframes slide { from { transform: translateX(30px); opacity: .6; } to { transform: none; opacity: 1; } }
+  .card { transition: transform .15s ease, box-shadow .15s ease; }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <span class="brand">Shyamlal General Store</span>
+    <span class="status" id="status"><span class="dot"></span><span id="statusText">Open</span></span>
+    <span class="spacer"></span>
+    <button class="cart-btn" id="openCart" type="button" aria-label="Open cart">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20.5" r="1.3"/><circle cx="17" cy="20.5" r="1.3"/></svg>
+      <span id="cartTotalBtn">₹0</span><span class="count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<section class="board">
+  <div class="wrap">
+    <div>
+      <h1>Shyamlal General Store</h1>
+      <p class="hi">श्यामलाल जनरल स्टोर · भरोसे की दुकान, हर घर का सामान</p>
+      <p>Atta, dal, masale, doodh, snacks and daily needs at MRP or less. Order here and we pack it while you walk over, or deliver it to your door in Pateri Tola and nearby.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><span>Free home delivery</span><b>Orders ₹299+</b></div>
+      <div class="fact"><span>Find us</span><b>Near HPCL Petrol Pump, Babhani Road</b></div>
+      <div class="fact"><span>Payment</span><b>UPI / Cash</b></div>
+      <div class="fact"><span>Timings</span><b>All days, 7:00 am – 8:00 pm</b></div>
+    </div>
+  </div>
+</section>
+
+<div class="offers">
+  <div class="wrap">
+    <span>Up to 20% off MRP on staples</span>
+    <span>Loose (khulla) dal &amp; rice weighed fresh</span>
+    <span>Monthly ration list? Add everything, we deliver once</span>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="controls">
+    <div class="search-row">
+      <div class="search">
+        <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search atta, dal, doodh, sabun…" aria-label="Search products" autocomplete="off">
+      </div>
+      <select id="sort" aria-label="Sort products">
+        <option value="pop">Popular first</option>
+        <option value="low">Price: low to high</option>
+        <option value="high">Price: high to low</option>
+        <option value="off">Biggest discount</option>
+      </select>
+    </div>
+    <div class="chips" id="chips" role="toolbar" aria-label="Categories"></div>
+    <p class="result-note" id="note"></p>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <section class="info" aria-label="Store details">
+    <div>
+      <h2>Visit the shop</h2>
+      <p>Pateri Tola, Post Muirpur,<br>Near HPCL Petrol Pump, Babhani Road</p>
+      <div class="copy-line"><span>Call / WhatsApp:</span> <code id="phoneText">+91 80094 82288</code> <button class="ghost" type="button" data-copy="8009482288">Copy</button></div>
+      <div class="copy-line" style="margin-top:6px"><span>UPI:</span> <span>Pay by UPI at the shop or on delivery. Ask for the UPI ID on WhatsApp.</span></div>
+    </div>
+    <div>
+      <h2>Timings</h2>
+      <table class="hours" id="hours"><tbody></tbody></table>
+    </div>
+    <div>
+      <h2>How ordering works</h2>
+      <p>1. Add items to your cart.</p>
+      <p>2. Choose home delivery or store pickup.</p>
+      <p>3. Place the order and send the order slip to us on WhatsApp.</p>
+      <p>4. Pay by UPI or cash when you receive it.</p>
+    </div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Your cart" role="dialog" aria-modal="true">
+  <div class="dr-head"><h2 id="drTitle">Your cart</h2><button class="x" id="closeCart" type="button" aria-label="Close cart">×</button></div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-foot" id="drFoot"></div>
+</aside>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  const CATS = [
+    { id: "staples", en: "Atta, Dal & Rice", c: "--c-staples" },
+    { id: "oil", en: "Oil & Ghee", c: "--c-oil" },
+    { id: "masala", en: "Masale & Salt", c: "--c-masala" },
+    { id: "dairy", en: "Dairy & Bread", c: "--c-dairy" },
+    { id: "snacks", en: "Snacks & Biscuits", c: "--c-snacks" },
+    { id: "drinks", en: "Tea & Drinks", c: "--c-drinks" },
+    { id: "care", en: "Personal Care", c: "--c-care" },
+    { id: "home", en: "Household", c: "--c-home" }
+  ];
+  // [id, name, hindi, cat, unit, mrp, price, short label, loose?]
+  const RAW = [
+    ["atta5", "Chakki Atta", "चक्की आटा", "staples", "5 kg", 285, 249, "Atta"],
+    ["arhar", "Toor (Arhar) Dal", "अरहर दाल", "staples", "1 kg", 180, 158, "Toor Dal", 1],
+    ["moong", "Moong Dal", "मूंग दाल", "staples", "1 kg", 150, 132, "Moong", 1],
+    ["chana", "Chana Dal", "चना दाल", "staples", "1 kg", 110, 96, "Chana", 1],
+    ["rice", "Basmati Rice", "बासमती चावल", "staples", "1 kg", 140, 118, "Basmati"],
+    ["sona", "Sona Masoori Rice", "सोना मसूरी चावल", "staples", "5 kg", 380, 335, "Chawal", 1],
+    ["sattu", "Chana Sattu", "चना सत्तू", "staples", "500 g", 90, 80, "Sattu"],
+    ["poha", "Poha (Chiwda)", "पोहा / चिउड़ा", "staples", "500 g", 45, 40, "Poha", 1],
+    ["sugar", "Sugar", "चीनी", "staples", "1 kg", 48, 45, "Cheeni", 1],
+    ["mustard", "Kachi Ghani Mustard Oil", "सरसों तेल", "oil", "1 L", 185, 165, "Sarson"],
+    ["refined", "Refined Soyabean Oil", "रिफाइंड तेल", "oil", "1 L", 150, 136, "Refined"],
+    ["ghee", "Desi Ghee", "देसी घी", "oil", "500 ml", 330, 305, "Ghee"],
+    ["haldi", "Haldi Powder", "हल्दी पाउडर", "masala", "100 g", 38, 32, "Haldi"],
+    ["mirch", "Lal Mirch Powder", "लाल मिर्च", "masala", "100 g", 48, 42, "Mirch"],
+    ["dhaniya", "Dhaniya Powder", "धनिया पाउडर", "masala", "100 g", 35, 30, "Dhaniya"],
+    ["garam", "Garam Masala", "गरम मसाला", "masala", "50 g", 55, 50, "Garam"],
+    ["salt", "Iodised Salt", "नमक", "masala", "1 kg", 28, 26, "Namak"],
+    ["jeera", "Jeera (Cumin)", "जीरा", "masala", "100 g", 70, 62, "Jeera", 1],
+    ["milk", "Toned Milk", "दूध", "dairy", "500 ml", 28, 28, "Doodh"],
+    ["dahi", "Dahi", "दही", "dairy", "400 g", 45, 42, "Dahi"],
+    ["paneer", "Fresh Paneer", "पनीर", "dairy", "200 g", 95, 88, "Paneer"],
+    ["bread", "Brown Bread", "ब्रेड", "dairy", "400 g", 50, 48, "Bread"],
+    ["eggs", "Eggs", "अंडे", "dairy", "6 pcs", 48, 45, "Ande"],
+    ["namkeen", "Aloo Bhujia", "आलू भुजिया", "snacks", "400 g", 110, 95, "Bhujia"],
+    ["biscuit", "Glucose Biscuits", "बिस्कुट", "snacks", "800 g", 100, 90, "Biscuit"],
+    ["thekua", "Thekua (Homemade)", "ठेकुआ", "snacks", "250 g", 80, 70, "Thekua"],
+    ["maggi", "Instant Noodles", "नूडल्स", "snacks", "4 pack", 56, 54, "Noodles"],
+    ["tea", "CTC Chai Patti", "चाय पत्ती", "drinks", "500 g", 280, 245, "Chai"],
+    ["coffee", "Instant Coffee", "कॉफ़ी", "drinks", "100 g", 210, 189, "Coffee"],
+    ["juice", "Mango Drink", "आम का रस", "drinks", "1.2 L", 75, 68, "Aam Ras"],
+    ["soap", "Neem Bathing Soap", "नहाने का साबुन", "care", "4 × 100 g", 160, 135, "Sabun"],
+    ["paste", "Toothpaste", "टूथपेस्ट", "care", "200 g", 120, 108, "Paste"],
+    ["hairoil", "Coconut Hair Oil", "नारियल तेल", "care", "300 ml", 150, 132, "Nariyal"],
+    ["shampoo", "Shampoo", "शैम्पू", "care", "340 ml", 240, 199, "Shampoo"],
+    ["surf", "Detergent Powder", "कपड़े धोने का पाउडर", "home", "1 kg", 140, 122, "Surf"],
+    ["dishbar", "Dishwash Bar", "बर्तन साबुन", "home", "3 × 200 g", 60, 54, "Bartan"],
+    ["phenyl", "Floor Cleaner", "फिनाइल", "home", "1 L", 110, 95, "Phenyl"],
+    ["agarbatti", "Agarbatti", "अगरबत्ती", "home", "100 sticks", 60, 55, "Agarbatti"],
+    ["matchbox", "Matchbox", "माचिस", "home", "10 pack", 20, 20, "Machis"]
+  ];
+  const PRODUCTS = RAW.map((r, i) => ({ id: r[0], name: r[1], hi: r[2], cat: r[3], unit: r[4], mrp: r[5], price: r[6], label: r[7], loose: !!r[8], pop: i }));
+  const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+  const catById = Object.fromEntries(CATS.map(c => [c.id, c]));
+
+  const FREE_DELIVERY = 299, DELIVERY_FEE = 30, OPEN_H = 7, CLOSE_H = 20;
+  const STORE_PHONE = "918009482288";
+  const KEY = "shyamlal-store-cart-v1";
+
+  // Example cart so the first view shows the tool working; marked as an example in the drawer.
+  let cart = { atta5: 1, arhar: 1, mustard: 1, tea: 1 };
+  let isExample = true;
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && typeof saved === "object") { cart = saved.cart || {}; isExample = !!saved.example; }
+  } catch (e) {}
+  for (const id in cart) if (!byId[id] || !(cart[id] > 0)) delete cart[id];
+
+  let state = { cat: "all", q: "", sort: "pop", view: "cart", mode: "delivery", pay: "upi", order: null };
+  const form = { name: "", phone: "", address: "", note: "" };
+
+  const $ = id => document.getElementById(id);
+  const rs = n => "₹" + Math.round(n).toLocaleString("en-IN");
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ cart, example: isExample })); } catch (e) {} }
+
+  function totals() {
+    let items = 0, sub = 0, mrp = 0;
+    for (const id in cart) { const p = byId[id], q = cart[id]; items += q; sub += p.price * q; mrp += p.mrp * q; }
+    const fee = state.mode === "delivery" && sub > 0 && sub < FREE_DELIVERY ? DELIVERY_FEE : 0;
+    return { items, sub, save: mrp - sub, fee, total: sub + fee };
+  }
+
+  /* ---------- Store status & hours ---------- */
+  function renderStatus() {
+    const now = new Date(), h = now.getHours() + now.getMinutes() / 60;
+    const open = h >= OPEN_H && h < CLOSE_H;
+    $("status").classList.toggle("closed", !open);
+    $("statusText").textContent = open ? "Open now · closes 8 pm" : "Closed · opens 7 am";
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const today = now.getDay();
+    $("hours").tBodies[0].innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d =>
+      `<tr class="${d === today ? "today" : ""}"><td>${days[d]}${d === today ? " (today)" : ""}</td><td>7:00 am – 8:00 pm</td></tr>`).join("");
+  }
+
+  /* ---------- Catalogue ---------- */
+  function renderChips() {
+    const counts = {}; PRODUCTS.forEach(p => counts[p.cat] = (counts[p.cat] || 0) + 1);
+    const all = [{ id: "all", en: "All items" }].concat(CATS);
+    $("chips").innerHTML = all.map(c =>
+      `<button class="chip" type="button" data-cat="${c.id}" aria-pressed="${state.cat === c.id}">${esc(c.en)}<small>${c.id === "all" ? PRODUCTS.length : counts[c.id]}</small></button>`).join("");
+  }
+
+  function visible() {
+    const q = state.q.trim().toLowerCase();
+    let list = PRODUCTS.filter(p => (state.cat === "all" || p.cat === state.cat) &&
+      (!q || (p.name + " " + p.hi + " " + p.label + " " + catById[p.cat].en).toLowerCase().includes(q)));
+    const pct = p => (p.mrp - p.price) / p.mrp;
+    if (state.sort === "low") list.sort((a, b) => a.price - b.price);
+    else if (state.sort === "high") list.sort((a, b) => b.price - a.price);
+    else if (state.sort === "off") list.sort((a, b) => pct(b) - pct(a));
+    else list.sort((a, b) => a.pop - b.pop);
+    return list;
+  }
+
+  function control(p) {
+    const q = cart[p.id] || 0;
+    return q ? `<div class="stepper"><button type="button" data-act="dec" data-id="${p.id}" aria-label="Remove one ${esc(p.name)}">−</button><span>${q}</span><button type="button" data-act="inc" data-id="${p.id}" aria-label="Add one more ${esc(p.name)}">+</button></div>`
+             : `<button class="add" type="button" data-act="inc" data-id="${p.id}">Add</button>`;
+  }
+
+  function renderGrid() {
+    const list = visible();
+    const catName = state.cat === "all" ? "all categories" : catById[state.cat].en;
+    $("note").textContent = `${list.length} item${list.length === 1 ? "" : "s"} in ${catName}${state.q ? ` matching “${state.q}”` : ""} · prices include all taxes`;
+    if (!list.length) {
+      $("grid").innerHTML = `<div class="empty"><strong>No items found.</strong><br>Try another word, like “dal” or “sabun”. If we don’t list it, ask us on WhatsApp — most daily items are in stock.</div>`;
+      return;
+    }
+    $("grid").innerHTML = list.map(p => {
+      const off = Math.round((p.mrp - p.price) / p.mrp * 100);
+      return `<article class="card">
+        <div class="pack" style="--pc: var(${catById[p.cat].c})" aria-hidden="true">
+          ${p.loose ? '<span class="loose">Khulla</span>' : ""}
+          ${off > 0 ? `<span class="off">${off}% off</span>` : ""}
+          <span class="pk-name">${esc(p.label)}</span><span class="pk-unit">${esc(p.unit)}</span>
+        </div>
+        <div><h3>${esc(p.name)}</h3><div class="hn">${esc(p.hi)} · ${esc(p.unit)}</div></div>
+        <div class="price-row"><span class="price">${rs(p.price)}</span>${p.mrp > p.price ? `<span class="mrp">MRP ${rs(p.mrp)}</span>` : ""}</div>
+        <div data-ctl="${p.id}">${control(p)}</div>
+      </article>`;
+    }).join("");
+  }
+
+  function refreshControl(id) {
+    const el = document.querySelector(`[data-ctl="${id}"]`);
+    if (el) el.innerHTML = control(byId[id]);
+  }
+
+  function renderBadge() {
+    const t = totals();
+    $("cartCount").textContent = t.items;
+    $("cartTotalBtn").textContent = rs(t.total);
+  }
+
+  function changeQty(id, d) {
+    if (isExample) { isExample = false; }
+    const q = Math.max(0, Math.min(99, (cart[id] || 0) + d));
+    if (q) cart[id] = q; else delete cart[id];
+    save(); refreshControl(id); renderBadge();
+    if (!$("drawer").hidden) renderDrawer();
+    if (d > 0) toast(`${byId[id].name} added · ${cart[id]} in cart`);
+  }
+
+  /* ---------- Drawer ---------- */
+  function openDrawer() { $("scrim").hidden = false; $("drawer").hidden = false; renderDrawer(); $("closeCart").focus(); }
+  function closeDrawer() { $("scrim").hidden = true; $("drawer").hidden = true; if (state.view === "done") { state.view = "cart"; } $("openCart").focus(); }
+
+  function renderDrawer() {
+    if (state.view === "done") return renderDone();
+    $("drTitle").textContent = "Your cart";
+    const ids = Object.keys(cart);
+    const t = totals();
+    if (!ids.length) {
+      $("drBody").innerHTML = `<div class="empty" style="padding:30px 0"><strong>Your cart is empty.</strong><br>Add atta, dal, doodh or anything else from the shelf.</div>`;
+      $("drFoot").innerHTML = `<button class="primary" type="button" id="keepShopping">Browse items</button>`;
+      return;
+    }
+    const lines = ids.map(id => {
+      const p = byId[id], q = cart[id];
+      return `<div class="line"><div class="nm">${esc(p.name)}<small>${esc(p.unit)} · ${rs(p.price)} each</small></div><div class="amt">${rs(p.price * q)}</div>
+        ${control(p)}<button class="rm" type="button" data-act="rm" data-id="${id}">Remove</button></div>`;
+    }).join("");
+    const need = FREE_DELIVERY - t.sub;
+    const hint = state.mode === "pickup" ? `Store pickup: ready in about 15 minutes.`
+      : need > 0 ? `Add <b>${rs(need)}</b> more for free home delivery.` : `<b>Free home delivery</b> unlocked.`;
+    const f = (k) => esc(form[k]);
+    $("drBody").innerHTML = `
+      ${isExample ? `<div class="hint">This is an example cart so you can see how ordering works. Change or remove items to start your own.</div>` : ""}
+      <div>${lines}</div>
+      <div class="hint">${hint}</div>
+      <div class="totals">
+        <div><span>Items (${t.items})</span><span>${rs(t.sub)}</span></div>
+        ${t.save > 0 ? `<div class="save"><span>You save vs MRP</span><span>− ${rs(t.save)}</span></div>` : ""}
+        <div><span>Delivery</span><span>${state.mode === "pickup" ? "Pickup" : t.fee ? rs(t.fee) : "Free"}</span></div>
+        <div class="grand"><span>To pay</span><span>${rs(t.total)}</span></div>
+      </div>
+      <form id="checkout" novalidate>
+        <fieldset><legend>How do you want it?</legend>
+          <div class="seg">
+            <label><input type="radio" name="mode" id="mode-delivery" value="delivery" ${state.mode === "delivery" ? "checked" : ""}> Home delivery</label>
+            <label><input type="radio" name="mode" id="mode-pickup" value="pickup" ${state.mode === "pickup" ? "checked" : ""}> Store pickup</label>
+          </div>
+        </fieldset>
+        <fieldset style="margin-top:14px"><legend>Your details</legend>
+          <div class="field" id="f-name"><label for="in-name">Name</label><input id="in-name" name="name" autocomplete="name" value="${f("name")}" placeholder="e.g. Ramesh Kumar"><span class="err" hidden></span></div>
+          <div class="field" id="f-phone"><label for="in-phone">Mobile number</label><input id="in-phone" name="phone" inputmode="numeric" autocomplete="tel-national" maxlength="10" value="${f("phone")}" placeholder="10-digit mobile number"><span class="err" hidden></span></div>
+          ${state.mode === "delivery" ? `<div class="field" id="f-address"><label for="in-address">Delivery address</label><textarea id="in-address" name="address" autocomplete="street-address" placeholder="House no., gali, landmark">${f("address")}</textarea><span class="err" hidden></span></div>` : ""}
+          <div class="field"><label for="in-note">Note for the shop (optional)</label><input id="in-note" name="note" value="${f("note")}" placeholder="e.g. Atta packet only, no loose"></div>
+        </fieldset>
+        <fieldset style="margin-top:14px"><legend>Payment</legend>
+          <div class="seg">
+            <label><input type="radio" name="pay" id="pay-upi" value="upi" ${state.pay === "upi" ? "checked" : ""}> UPI</label>
+            <label><input type="radio" name="pay" id="pay-cash" value="cash" ${state.pay === "cash" ? "checked" : ""}> Cash</label>
+          </div>
+        </fieldset>
+      </form>`;
+    $("drFoot").innerHTML = `<button class="primary" type="submit" form="checkout">Place order · ${rs(t.total)}</button>`;
+  }
+
+  function setErr(fid, msg) {
+    const el = $(fid); if (!el) return;
+    el.classList.toggle("bad", !!msg);
+    const e = el.querySelector(".err"); e.hidden = !msg; e.textContent = msg || "";
+  }
+
+  function placeOrder() {
+    let ok = true;
+    const name = form.name.trim(), phone = form.phone.replace(/\D/g, ""), addr = form.address.trim();
+    setErr("f-name", name ? "" : "Enter your name so we know whose order it is."); if (!name) ok = false;
+    const pOk = /^[6-9]\d{9}$/.test(phone);
+    setErr("f-phone", pOk ? "" : "Enter a 10-digit mobile number starting with 6, 7, 8 or 9."); if (!pOk) ok = false;
+    if (state.mode === "delivery") { setErr("f-address", addr ? "" : "Enter the address where we should deliver."); if (!addr) ok = false; }
+    if (!ok) { const bad = document.querySelector(".field.bad input, .field.bad textarea"); if (bad) bad.focus(); return; }
+
+    const t = totals(), d = new Date();
+    const no = "SGS-" + String(d.getDate()).padStart(2, "0") + String(d.getMonth() + 1).padStart(2, "0") + "-" + Math.floor(100 + Math.random() * 900);
+    const items = Object.keys(cart).map((id, i) => `${i + 1}. ${byId[id].name} (${byId[id].unit}) × ${cart[id]} = ${rs(byId[id].price * cart[id])}`);
+    const slip = [
+      `Shyamlal General Store – Order ${no}`,
+      `Name: ${name}`, `Mobile: ${phone}`,
+      state.mode === "delivery" ? `Home delivery to: ${addr}` : `Store pickup`,
+      form.note.trim() ? `Note: ${form.note.trim()}` : null,
+      ``, `Items:`, ...items, ``,
+      `Items total: ${rs(t.sub)}`,
+      t.save > 0 ? `Saved vs MRP: ${rs(t.save)}` : null,
+      state.mode === "delivery" ? `Delivery: ${t.fee ? rs(t.fee) : "Free"}` : null,
+      `To pay: ${rs(t.total)} by ${state.pay === "upi" ? "UPI" : "Cash"}`
+    ].filter(x => x !== null).join("\n");
+    state.order = { no, slip, total: t.total };
+    state.view = "done";
+    cart = {}; isExample = false; save();
+    renderGrid(); renderBadge(); renderDrawer();
+  }
+
+  function renderDone() {
+    const o = state.order;
+    $("drTitle").textContent = "Order ready";
+    $("drBody").innerHTML = `
+      <p class="done-badge">Order ${esc(o.no)} is ready to send</p>
+      <p style="margin:0">Send this order slip to the shop on WhatsApp. We confirm by message, then pack it${state.mode === "delivery" ? " and deliver it to you" : " for pickup in about 15 minutes"}.</p>
+      <pre class="slip" id="slip">${esc(o.slip)}</pre>
+      <div class="btn-row">
+        <button class="ghost" type="button" id="copySlip" style="padding:10px">Copy order slip</button>
+        <a class="wa" href="https://wa.me/${STORE_PHONE}?text=${encodeURIComponent(o.slip)}" target="_blank" rel="noopener">Open WhatsApp</a>
+      </div>
+      <p style="margin:0;color:var(--muted);font-size:.9rem">If WhatsApp doesn’t open, copy the slip and send it to <strong>+91 80094 82288</strong>.</p>`;
+    $("drFoot").innerHTML = `<button class="primary" type="button" id="newOrder">Start a new order</button>`;
+  }
+
+  /* ---------- Helpers ---------- */
+  let tTimer;
+  function toast(msg) { const el = $("toast"); el.textContent = msg; el.hidden = false; clearTimeout(tTimer); tTimer = setTimeout(() => el.hidden = true, 1800); }
+
+  function copy(text) {
+    const done = () => toast("Copied");
+    try {
+      navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text));
+    } catch (e) { fallbackCopy(text); }
+  }
+  function fallbackCopy(text) {
+    const slip = $("slip");
+    if (slip && slip.textContent === text) { const r = document.createRange(); r.selectNodeContents(slip); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Selected. Press copy on your device."); return; }
+    toast("Copy blocked. Select the text and copy it.");
+  }
+
+  /* ---------- Events ---------- */
+  $("q").addEventListener("input", e => { state.q = e.target.value; renderGrid(); });
+  $("sort").addEventListener("change", e => { state.sort = e.target.value; renderGrid(); });
+  $("chips").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; state.cat = b.dataset.cat; renderChips(); renderGrid(); });
+
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-act]");
+    if (a) {
+      const id = a.dataset.id;
+      if (a.dataset.act === "inc") changeQty(id, 1);
+      else if (a.dataset.act === "dec") changeQty(id, -1);
+      else if (a.dataset.act === "rm") changeQty(id, -(cart[id] || 0));
+      return;
+    }
+    const c = e.target.closest("[data-copy]"); if (c) { copy(c.dataset.copy); return; }
+    if (e.target.id === "copySlip") copy(state.order.slip);
+    if (e.target.id === "newOrder") { state.view = "cart"; state.order = null; closeDrawer(); toast("Ready for a new order"); }
+    if (e.target.id === "keepShopping") closeDrawer();
+  });
+
+  $("openCart").addEventListener("click", openDrawer);
+  $("closeCart").addEventListener("click", closeDrawer);
+  $("scrim").addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("drawer").hidden) closeDrawer(); });
+
+  $("drawer").addEventListener("input", e => {
+    const n = e.target.name;
+    if (n in form) {
+      if (n === "phone") e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+      form[n] = e.target.value;
+    }
+  });
+  $("drawer").addEventListener("change", e => {
+    if (e.target.name === "mode") { state.mode = e.target.value; renderDrawer(); renderBadge(); }
+    if (e.target.name === "pay") { state.pay = e.target.value; }
+  });
+  $("drawer").addEventListener("submit", e => { e.preventDefault(); placeOrder(); });
+
+  renderStatus(); setInterval(renderStatus, 60000);
+  renderChips(); renderGrid(); renderBadge();
+})();
+</script>
+</body>
+</html>
